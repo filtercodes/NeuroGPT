@@ -74,11 +74,11 @@ class Model(torch.nn.Module):
         
         for k in pretrained:     
             if k not in self.state_dict():
-                warnings.warn(
-                    f'Warning: /!\ Skipping {k} from {pretrained_path} '\
-                    'because it is not part of the current model'
-                )
-
+                # warnings.warn(
+                #     f'Warning: /!\ Skipping {k} from {pretrained_path} '
+                #     'because it is not part of the current model'
+                # )
+                pass
         # we set strict=False, because we can be sure
         # that all relevant keys are in pretrained
         self.load_state_dict(pretrained, strict=False)

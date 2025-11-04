@@ -136,5 +136,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# Folder attributes
+.DS_Store
+
 data/
 result/
