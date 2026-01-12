@@ -156,15 +156,27 @@ def train(config: Dict=None) -> Trainer:
         
     else:
         root_path = config["train_data_path"]
-        files = read_threshold_sub('../inputs/sub_list2.csv', lower_bound=1000, upper_bound=1000000)# time len
+        files = read_threshold_sub(config['data_list'], lower_bound=1000, upper_bound=1000000)# time len
      
         random.shuffle(files)
-        train_dataset = EEGDataset(files[1000:], sample_keys=[
+        
+        # Split 90% Train / 10% Val (or at least 1 file for val)
+        num_files = len(files)
+        split_idx = int(num_files * 0.9)
+        if split_idx == num_files and num_files > 1:
+             split_idx = num_files - 1
+        
+        train_files = files[:split_idx]
+        val_files = files[split_idx:]
+        
+        print(f"Data Split: {len(train_files)} Training files, {len(val_files)} Validation files.")
+
+        train_dataset = EEGDataset(train_files, sample_keys=[
             'inputs',
             'attention_mask'
         ], chunk_len=config["chunk_len"], num_chunks=config["num_chunks"], ovlp=config["chunk_ovlp"], root_path=root_path, gpt_only= not config["use_encoder"], normalization=config["do_normalization"])
 
-        validation_dataset = EEGDataset(files[:1000], sample_keys=[
+        validation_dataset = EEGDataset(val_files, sample_keys=[
             'inputs',
             'attention_mask'
         ], chunk_len=config["chunk_len"], num_chunks=config["num_chunks"], ovlp=config["chunk_ovlp"], root_path=root_path, gpt_only= not config["use_encoder"], normalization=config["do_normalization"])
@@ -682,10 +694,10 @@ def get_args() -> argparse.ArgumentParser:
     parser.add_argument(
         '--optim',
         metavar='STR',
-        default='adamw_hf',
+        default='adamw_torch',
         type=str,
         help='optimizer to use for training '
-             '(default: adamw_hf) -> adamw from HuggingFrace transformer library. '
+             '(default: adamw_torch) -> adamw from HuggingFrace transformer library. '
              'For other options see Huggingface TrainerArgs.'
     )
     parser.add_argument(
@@ -972,6 +984,13 @@ def get_args() -> argparse.ArgumentParser:
         type=str,
         help='finetune with only encoder or not '
              '(default: False) '
+    )
+    parser.add_argument(
+        '--data-list',
+        metavar='STR',
+        default='../inputs/sub_list2.csv',
+        type=str,
+        help='path to data list csv'
     )
 
     return parser

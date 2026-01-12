@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from typing import Dict, List, Optional, Tuple
-
+from functools import partial
 from collections.abc import Mapping
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
@@ -105,10 +105,14 @@ class Trainer(Trainer):
                 batch_size=self.args.per_device_train_batch_size,
                 # collate_fn=data_collator,
                 num_workers=self.args.dataloader_num_workers,
-                pin_memory=True,
+                pin_memory=False,
             )
 
         train_sampler = self._get_train_sampler()
+        
+        # transformers 4.53+ seed_worker requires num_workers and rank
+        worker_init = partial(seed_worker, num_workers=self.args.dataloader_num_workers, rank=self.args.process_index)
+        
         train_loader = DataLoader(
             train_dataset,
             batch_size=self._train_batch_size,
@@ -116,8 +120,8 @@ class Trainer(Trainer):
             # collate_fn=data_collator,
             drop_last=self.args.dataloader_drop_last,
             num_workers=self.args.dataloader_num_workers,
-            pin_memory=True,
-            worker_init_fn=seed_worker,
+            pin_memory=False,
+            worker_init_fn=worker_init,
         )
         return train_loader
 

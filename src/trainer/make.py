@@ -188,7 +188,7 @@ def make_trainer(
         logging_strategy=logging_strategy,
         logging_first_step=logging_first_step,
         logging_steps=logging_steps,
-        evaluation_strategy=evaluation_strategy,
+        eval_strategy=evaluation_strategy,
         eval_steps=eval_steps if eval_steps is not None else logging_steps,
         seed=seed,
         fp16=fp16,
